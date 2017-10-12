@@ -54,7 +54,7 @@ int _2grade_test_print_const(char *buf, int id)
 
 	if(id == 0) {
 		len += sprintf(buf+len, "苏州市平江实验学校二年级上册计算过关\n");
-		len += sprintf(buf+len, "班级_______   姓名_______   学号_______   成绩\n");
+		len += sprintf(buf+len, "班级_______   姓名_______   学号_______   成绩_______\n");
 		len += sprintf(buf+len, "一、直接写出得数。（66分）\n");
 	} else if(id == 1) {
 		len += sprintf(buf+len, "二、填空。（10分）\n");
@@ -73,12 +73,12 @@ static print_profile_t g_profiles[] = {
 		//s_type, e_type, n_integer, range, n_equation, n_per_line, b_left_blank, print_const, const_id, n_line_feed;
 			{CONST, UNKNOWN, 0, 0, 0, 0, 0, _2grade_test_print_const, 0, 0},
 			{EQUATION, MIXED_ADD_SUB, 2, 100, 54, 6, 0, NULL, 0, 0},
-			{EQUATION, MIXED_ADD_SUB, 3, 100, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_ADD_SUB, 3, 100, 6, 3, 0, NULL, 0, 0},
 			{CONST, UNKNOWN, 0, 0, 0, 0, 0, _2grade_test_print_const, 1, 0},
 			{EQUATION, MIXED_ADD_SUB, 2, 100, 10, 4, 1, NULL, 0, 0},
 			{CONST, UNKNOWN, 0, 0, 0, 0, 0, _2grade_test_print_const, 2, 0},
-			{EQUATION, MIXED_ADD_SUB, 3, 100, 4, 4, 0, NULL, 0, 2},
-			{EQUATION, MIXED_ADD_SUB, 3, 100, 4, 4, 0, NULL, 0, 2}
+			{EQUATION, MIXED_ADD_SUB, 3, 100, 4, 4, 0, NULL, 0, 3},
+			{EQUATION, MIXED_ADD_SUB, 3, 100, 4, 4, 0, NULL, 0, 3}
 		},
 		8
 	}
@@ -162,7 +162,7 @@ int print_equation_section(char *buf, equation_t *equation,
 			blank = (unsigned int)rand()%e->n_integer;
 		for(j=0; j<e->n_integer; j++) {
 			if(b_left_blank && blank == j)
-				len += sprintf(buf+len, "(    )");
+				len += sprintf(buf+len, "(      )");
 			else
 				len += sprintf(buf+len, "%d", e->integer[j]);
 			if(j < e->n_integer-1)
