@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #define  STD_NULL         ((void*)0)
 #define  MAX_NUMBERS	10
@@ -9,9 +10,13 @@
 typedef int (*print_const_t)(char *buf, int id);
 
 typedef enum{
-	ADDITION,
-	SUBTRACTION,
+	ADDITION = 0,
+	SUBTRACTION = 1,
+	MULTIPLICATION = 2,
+	DIVISION = 3,
 	MIXED_ADD_SUB,
+	MIXED_MUL_DIV,
+	MIXED,
 	UNKNOWN
 } equation_type_t;
 
@@ -67,6 +72,20 @@ int _2grade_test_print_const(char *buf, int id)
 	return len;
 }
 
+int _2grade_mixed_practice_print_const(char *buf, int id)
+{
+	int len = 0;
+
+	if(id == 0) {
+		len += sprintf(buf+len, "二年级数学混合联练习\n");
+		len += sprintf(buf+len, "班级______   姓名______  日期______   成绩______\n");
+	} else {
+		printf("[_2grade_mixed_practice_print_const] invalid id!\n");
+	}
+
+	return len;
+}
+
 static print_profile_t g_profiles[] = {
 	{
 		{
@@ -81,15 +100,67 @@ static print_profile_t g_profiles[] = {
 			{EQUATION, MIXED_ADD_SUB, 3, 100, 4, 4, 0, NULL, 0, 3}
 		},
 		8
-	}
+	},
+
+	//_2grade_mixed_practice
+	{
+		{
+		//s_type, e_type, n_integer, range, n_equation, n_per_line, b_left_blank, print_const, const_id, n_line_feed;
+			{CONST, UNKNOWN, 0, 0, 0, 0, 0, _2grade_mixed_practice_print_const, 0, 0},
+			//{EQUATION, MULTIPLICATION, 2, 40, 20, 5, 0, NULL, 0, 0},
+			//{EQUATION, DIVISION, 2, 40, 20, 5, 0, NULL, 0, 0},
+			{EQUATION, MIXED_ADD_SUB, 2, 100, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_MUL_DIV, 2, 40, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_ADD_SUB, 2, 100, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_MUL_DIV, 2, 40, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_ADD_SUB, 2, 100, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_MUL_DIV, 2, 40, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_ADD_SUB, 2, 100, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_MUL_DIV, 2, 40, 6, 6, 0, NULL, 0, 0},
+			{EQUATION, MIXED_ADD_SUB, 2, 100, 6, 6, 0, NULL, 0, 0},
+		},
+		10
+	},
+
+	//_2grade_AS_test_mixed
+	{
+		{
+		//s_type, e_type, n_integer, range, n_equation, n_per_line, b_left_blank, print_const, const_id, n_line_feed;
+			{CONST, UNKNOWN, 0, 0, 0, 0, 0, _2grade_test_print_const, 0, 0},
+			{EQUATION, MIXED, 2, 100, 66, 6, 0, NULL, 0, 0},
+			{CONST, UNKNOWN, 0, 0, 0, 0, 0, _2grade_test_print_const, 1, 0},
+			{EQUATION, MIXED, 2, 100, 10, 4, 1, NULL, 0, 0},
+			{CONST, UNKNOWN, 0, 0, 0, 0, 0, _2grade_test_print_const, 2, 0},
+			{EQUATION, MIXED_ADD_SUB, 3, 100, 4, 4, 0, NULL, 0, 3},
+			{EQUATION, MIXED_ADD_SUB, 3, 100, 4, 4, 0, NULL, 0, 3}
+		},
+		7
+	},
 };
 
-void generate_single_equation(equation_type_t type, unsigned int range, unsigned int result, equation_t * equation)
+/*
+bool IsPrimeNumber(int n)
+{
+	int i,k;
+	k=(int)sqrt(n);
+	for(i=2;i<=k;i++)
+		if(n%i==0) break;
+	return i>k;
+}
+*/
+
+void generate_single_equation(equation_type_t type, unsigned int range, unsigned int *pResult, equation_t * equation)
 {
 	unsigned int a;
 	equation_type_t t;
+	unsigned int result = *pResult;
+
+	printf("[main] %d %d %d\n", type, range, *pResult);
 
 	t = type;
+	if(t == MIXED)
+ 		t = (rand()&1) ? MIXED_ADD_SUB : MIXED_MUL_DIV;
+
 	if(t == MIXED_ADD_SUB) {
 		if(result < (range/3))
 			t = SUBTRACTION;
@@ -99,6 +170,9 @@ void generate_single_equation(equation_type_t type, unsigned int range, unsigned
 			t = (rand()&1) ? ADDITION : SUBTRACTION;
 	}
 
+	if(t == MIXED_MUL_DIV)
+ 		t = (rand()&1) ? MULTIPLICATION: DIVISION;
+
 	if(t == ADDITION) {
 		a = 0;
 		while(a < range/10 || (result-a) < range/10)
@@ -106,15 +180,36 @@ void generate_single_equation(equation_type_t type, unsigned int range, unsigned
 		equation->integer[0] = a;
 		equation->integer[1] = result-a;
 		equation->operator[0] = '+';
-	} else {
+	} else if(t == SUBTRACTION) {
 		a = result;
 		while((a-result) < range/10)
 			a = ((unsigned int)rand()%(range-result))+result;
 		equation->integer[0] = a;
 		equation->integer[1] = a-result;
 		equation->operator[0] = '-';
+	} else if(t == MULTIPLICATION) {
+		equation->integer[0] = (rand()%9)+1;
+		if(equation->integer[0] == 1)
+			equation->integer[0] = (rand()%9)+1;		
+		equation->integer[1] = (rand()%9)+1;
+		if(equation->integer[1] == 1)
+			equation->integer[1] = (rand()%9)+1;		
+		result = equation->integer[0] * equation->integer[1];
+		equation->operator[0] = '*';
+	} else {
+		equation->integer[1] = (rand()%9)+1;
+		if(equation->integer[1] == 1)
+			equation->integer[1] = (rand()%9)+1;		
+		result = (rand()%9)+1;
+		if(result == 1)
+			result = (rand()%9)+1;
+		equation->integer[0] = result * equation->integer[1];
+		equation->operator[0] = '/';
 	}
 
+	printf("[main] %d %c %d = %d\n", equation->integer[0], equation->operator[0], equation->integer[1], result);
+
+	*pResult = result;
 	equation->result = result;
 	equation->n_integer = 2;
 }
@@ -138,7 +233,7 @@ void generate_equation(equation_type_t type, int n_integer, unsigned int range, 
 	i = n_integer - 1;
 	equation->integer[i] = result;
 	while(i > 0) {
-		generate_single_equation(type, range, equation->integer[i], &e);
+		generate_single_equation(type, range, &(equation->integer[i]), &e);
 
 		equation->integer[i-1] = e.integer[0];
 		equation->integer[i] = e.integer[1];
@@ -165,8 +260,22 @@ int print_equation_section(char *buf, equation_t *equation,
 				len += sprintf(buf+len, "(      )");
 			else
 				len += sprintf(buf+len, "%d", e->integer[j]);
-			if(j < e->n_integer-1)
-				len += sprintf(buf+len, "%c", e->operator[j]);
+			if(j < e->n_integer-1) {
+				switch(e->operator[j]) {
+				case '+':
+				case '-':
+					len += sprintf(buf+len, "%c", e->operator[j]);
+					break;
+				case '*':
+					len += sprintf(buf+len, "×");
+					break;
+				case '/':
+					len += sprintf(buf+len, "÷");
+					break;
+				default:
+					break;
+				}
+			}
 		}
 		if(b_left_blank)
 			len += sprintf(buf+len, "=%d         ", e->result);
@@ -201,7 +310,7 @@ int main()
 		return 0;
 	}
 	*/
-	profile = 0;
+	profile = 2;
 
 	printf("Page: \n");
 	scanf("%d", &page);
@@ -219,6 +328,8 @@ int main()
 	while(page > 0) {
 		for(i=0; i<g_profiles[profile].n_section; i++) {
 			print_section_t *p_section = &(g_profiles[profile].sections[i]);
+
+			printf("[main] %d\n", i, p_section->e_type);
 
 			if(p_section->s_type == EQUATION) {
 				equation_t *p_equation = (equation_t*)malloc(sizeof(equation_t)*p_section->n_equation);
