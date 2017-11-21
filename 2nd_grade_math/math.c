@@ -155,8 +155,6 @@ void generate_single_equation(equation_type_t type, unsigned int range, unsigned
 	equation_type_t t;
 	unsigned int result = *pResult;
 
-	printf("[main] %d %d %d\n", type, range, *pResult);
-
 	t = type;
 	if(t == MIXED)
  		t = (rand()&1) ? MIXED_ADD_SUB : MIXED_MUL_DIV;
@@ -207,8 +205,6 @@ void generate_single_equation(equation_type_t type, unsigned int range, unsigned
 		equation->operator[0] = '/';
 	}
 
-	printf("[main] %d %c %d = %d\n", equation->integer[0], equation->operator[0], equation->integer[1], result);
-
 	*pResult = result;
 	equation->result = result;
 	equation->n_integer = 2;
@@ -234,6 +230,8 @@ void generate_equation(equation_type_t type, int n_integer, unsigned int range, 
 	equation->integer[i] = result;
 	while(i > 0) {
 		generate_single_equation(type, range, &(equation->integer[i]), &e);
+		if(i == n_integer-1)
+			result = equation->integer[i];
 
 		equation->integer[i-1] = e.integer[0];
 		equation->integer[i] = e.integer[1];
@@ -328,8 +326,6 @@ int main()
 	while(page > 0) {
 		for(i=0; i<g_profiles[profile].n_section; i++) {
 			print_section_t *p_section = &(g_profiles[profile].sections[i]);
-
-			printf("[main] %d\n", i, p_section->e_type);
 
 			if(p_section->s_type == EQUATION) {
 				equation_t *p_equation = (equation_t*)malloc(sizeof(equation_t)*p_section->n_equation);
